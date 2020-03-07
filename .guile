@@ -1,0 +1,8 @@
+;; Guile config file
+
+;; history
+(use-modules (ice-9 readline))
+(activate-readline)
+
+;; curly infix as in srfi-105
+(read-enable 'curly-infix)
