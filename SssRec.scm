@@ -28,11 +28,37 @@
       #f
       (let [ (c (first L))
 	     (R (rest L)) ]
-	(cond [ {c = t} #t ]
+	(cond [ {c = t} #t ] ;; c is the solution
 	      [ {c > t} (ssigma R t) ]
 	      ;; c < t at this point
 	      ;; c is part of the solution or his approximation
 	      ;; or c is not part of solution
 	      [ else {(ssigma R {t - c}) or (ssigma R t)} ] ))))
 
-(ssigma L-init t-init)
+(define (ssigma-sol L t S)
+  ;; (display L)
+  ;; (newline)
+  ;; (display t)
+  ;; (newline)
+  ;; (newline)
+  (if (null? L)
+      (begin
+	(display "null L")
+	(newline)
+	(display S)
+	(newline)
+	#f)
+      (let [ (c (first L))
+	     (R (rest L)) ]
+	(cond [ {c = t} (begin
+			  (display (cons c S))
+			  (newline)
+			  #t) ] ;; c is the solution
+	      [ {c > t} (ssigma-sol R t S) ]
+	      ;; c < t at this point
+	      ;; c is part of the solution or his approximation
+	      ;; or c is not part of solution
+	      [ else {(ssigma-sol R {t - c} (cons c S)) or (ssigma-sol R t S)} ] ))))
+
+
+(ssigma-sol L-init t-init '())
