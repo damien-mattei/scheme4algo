@@ -2,10 +2,11 @@
 ;; Recursive solution
 ;; Guile compatible
 
-;;  for curly infix notation
-;; (read-enable 'curly-infix)
+;; see .guile file for options
 
-;; export GUILE_AUTO_COMPILE=0
+;; VERY IMPORTANT: export the variable below into shell before launching Guile
+;;( export GUILE_AUTO_COMPILE=0 )
+;; export GUILE_AUTO_COMPILE=fresh
 
 ;; (load "SssRec.scm")
 
@@ -13,6 +14,8 @@
 
 
 (include "../library-FunctProg/first-and-rest.scm")
+(include "../library-FunctProg/list.scm")
+(include "../library-FunctProg/postfix.scm")
 
 ;; if data are disordered the algo works also
 ;;(define L-init '(1 3 4 16 17 64 256 275 723 889 1040 1041 1093 1111 1284 1344 1520 2027 2734 3000 4285 5027))
