@@ -5,17 +5,21 @@
 ;;  for curly infix notation
 ;; (read-enable 'curly-infix)
 
+;; ne marche pas:
 ;; export GUILE_AUTO_COMPILE=0
 
+;; touch file.scm works if you change included files but not source file.scm
+
+
 ;; (load "SssDyna.scm")
-
-
 
 
 (include "../library-FunctProg/first-and-rest.scm")
 (include "../library-FunctProg/array.scm")
 (include "../library-FunctProg/pair.scm")
 (include "../library-FunctProg/number.scm")
+(include "../library-FunctProg/list.scm")
+(include "../library-FunctProg/let.scm")
 
 ;;(define L-init '(1 3 4 16 17 64 256 275 723 889 1040 1041 1093 1111 1284 1344 1520 2027 2734 3000 4285 5027))
 (define L-init '(1 3 4 16 17 24 45 64 197 256 275 323 540 723 889 915 1040 1041 1093 1099 1111 1284 1344 1520 2027 2500 2734 3000 3267 3610 4285 5027))
@@ -39,7 +43,8 @@
 ;; $3 = 147801
 (define (ssigma-dyna L t)
 
-  (set! cpt {cpt + 1})
+  {cpt <- {cpt + 1}}
+  
   ;;(display L) (display " ") (display t) (newline)
   
   (let*  [(ls (length L))
@@ -173,7 +178,7 @@
   	dyn
 	(ssigma-sol-approx-dyna L t '() t '()))))
 
-
+;; TODO try to get out function constant parameters (if there are)
 (define (ssigma-sol-approx-dyna L t S t-init AS) ;; AS:approximative solution
 
   ;; (display "L=") (display L)
