@@ -72,11 +72,44 @@
 			t  )))))
 
 
-;; scheme@(guile-user)> (ssigma-bad L-init t-init)
+;; scheme@(guile-user)> (ssigma-dyna-local L-init t-init)
+;; $1 = #t
+;; scheme@(guile-user)> cpt
+;; $2 = 147801
+(define (ssigma-dyna-local L t)
+
+  {cpt <- {cpt + 1}}
+  
+  ;;(display L) (display " ") (display t) (newline)
+  
+  (local  [ ls (length L)
+	    dyn {dyna[ls t]} ]
+    
+    ;; dyna[ls t] means 0: unknown solution, 1: solution found, 2: no solution
+    (one?
+     (if (not (zero? dyn))
+	
+	dyn
+
+	;; set the array but return the variable
+	{ dyna[ls t] <-  (one-two
+			  (if (null? L)
+			      #f
+			      (local [ c (first L)
+				       R (rest L) ]
+				     (cond [ {c = t} #t ] ;; c is the solution
+					   [ {c > t} (ssigma-dyna-local R t) ] ;; c is to big to be a solution but can be an approximation
+					   ;; c < t at this point
+					   ;; c is part of the solution or his approximation
+					   ;; or c is not part of solution or his approximation
+					   [ else {(ssigma-dyna-local R {t - c}) or (ssigma-dyna-local R t)} ] )))) } ))))
+
+
+;; scheme@(guile-user)> (ssigma-proto L-init t-init)
 ;;  = #t
 ;; scheme@(guile-user)> cpt
 ;; $2 = 147801
-(define (ssigma-bad L t)
+(define (ssigma-proto L t)
 
   ;;(display L) (display " ") (display t) (newline)
   (set! cpt {cpt + 1})
@@ -111,7 +144,7 @@
 			
 			(if {c > t}   ;; continue searching a solution in the rest
 			    
-			    (let [(s (ssigma-bad R t))]
+			    (let [(s (ssigma-proto R t))]
 			      (array-set! dyna
 					  (one-two s)
 					  ls t)
@@ -123,7 +156,7 @@
 			    ;; c < t at this point
 			    ;; c is part of the solution or his approximation
 			    ;; or c is not part of solution
-			    (let [(s {(ssigma-bad R {t - c}) or (ssigma-bad R t)})]
+			    (let [(s {(ssigma-proto R {t - c}) or (ssigma-proto R t)})]
 			      (array-set! dyna (one-two s)
 					  ls t)
 			      s)))))
@@ -161,6 +194,7 @@
   (let [(L22 (best-sol t L2 L3))]
     (best-sol t L1 L22)))
 
+;; functions below are not good
 (define (start-ssigma-sol-approx-dyna L t)
   ;; (display "start-ssigma-sol-approx")
   ;; (newline)
@@ -219,7 +253,7 @@
 					 (append (cons c S)
 						 (start-ssigma-sol-approx R {t - c}))) ;; we have to find a solution for t-c now
 
-				       (ssigma-sol-approx R t S t-init AS))])))) ;;  we must save the best in dyna
+				       (ssigma-sol-approx R t S t-init AS))])))) ;;  we must save the best in dyna (TODO : where? verify)
 
 
 

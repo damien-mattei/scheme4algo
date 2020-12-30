@@ -16,6 +16,7 @@
 (include "../library-FunctProg/first-and-rest.scm")
 (include "../library-FunctProg/list.scm")
 (include "../library-FunctProg/postfix.scm")
+(include "../library-FunctProg/let.scm")
 
 ;; if data are disordered the algo works also
 ;;(define L-init '(1 3 4 16 17 64 256 275 723 889 1040 1041 1093 1111 1284 1344 1520 2027 2734 3000 4285 5027))
@@ -87,6 +88,8 @@
 ;; scheme@(guile-user)> (apply + $3)
 ;; $5 = 40274
 
+;; scheme@(guile-user)> (ssigma-sol L-init 19836 '())
+;; $5 = (3267 3000 2734 2027 1284 1099 1093 1040 915 889 723 540 323 275 256 197 64 45 24 17 16 4 3 1)
 
 (define (ssigma-sol L t S)
 
@@ -106,6 +109,11 @@
 	      ;; c is part of the solution or his approximation
 	      ;; or c is not part of solution or his approximation
 	      [ else {(ssigma-sol R {t - c} (cons c S)) or (ssigma-sol R t S)} ] ))))
+
+
+
+
+
 
 
 ;; (best-sol 100 '(101) '(90 4 3))
@@ -157,6 +165,14 @@
 ;; scheme@(guile-user)> (+ 1 4 64 256 275)
 ;; $8 = 600
 
+;; (start-ssigma-sol-approx '(1 3 4 16 17 24 45 64 197 256 275 323 540 723 889 915 1040 1041 1093) (apply + '(1 3 4 16 17 24 45 64 197 256 275 323 540 723 889 915 1040 1041 1093)))
+;; (1 3 4 16 17 24 45 64 197 256 275 323 540 723 889 915 1040 1041 1093)
+
+;; scheme@(guile-user)> (define L-init '(1 3 4 16 17 64 256 275 723 889 1040 1041 1093 1111 1284 1344 1520 2027 2734 3000 4285 5027))
+;; scheme@(guile-user)> (start-ssigma-sol-approx L-init 19836)
+;; $1 = (1 3 4 16 17 256 275 723 1040 1041 1284 1344 1520 3000 4285 5027)
+
+;; DEPRECATED
 (define (start-ssigma-sol-approx L t)
   ;; (display "start-ssigma-sol-approx")
   ;; (newline)
@@ -170,7 +186,7 @@
    ;;   (ssigma-sol-approx L t '() t (list (first L)))))
     (ssigma-sol-approx L t '() t '()))
 
-
+;; DEPRECATED
 (define (ssigma-sol-approx L t S t-init AS) ;; AS:approximative solution
 
   ;; (display "L=") (display L)
@@ -196,22 +212,105 @@
       
       (let [ (c (first L))
 	     (R (rest L)) ]
-	(cond [ {c = t} (best-sol t-init AS (cons c S)) ] ;; c is the solution
+	(cond [ {c = t} (best-sol t-init AS (cons c S)) ] ;; c is the solution, TODO : test AS is not always null in this case
 	      [ {c > t} (ssigma-sol-approx R t S t-init (best-sol t-init
 								  AS
 								  (list c))) ] ;; c is to big to be a solution but can be an approximation
-	      ;; c < t at this point
+	      ;; c < t at this point, 2 possibilities :
 	      ;; c is part of the solution or his approximation
 	      ;; or c is not part of solution or his approximation
 	      [ else (best-sol3 t-init AS
 				
 				       (begin
-					 ;;(display "append c=") (display c) (newline)
+					 ;; (display "append c=") (display c) (newline)
 
-					 (append (cons c S)
-						 (start-ssigma-sol-approx R {t - c}))) ;; we have to find a solution for t-c now
-
+					 (append (cons c S) ;; c part of solution or is approximation
+						 (start-ssigma-sol-approx R {t - c}))) ;; we have to find a solution or an approximation for t-c now
+				       
+				       ;; c is not part of solution or his approximation
 				       (ssigma-sol-approx R t S t-init AS))]))))
 
 
+;; package function will encapsulate some inner functions and reduce the number
+;; of constant parameters passed to inner functions, inner functions will
+;; be sort of clozures
 
+;; code completely changed, there is less variable
+
+;; scheme@(guile-user)> (define L-init '(1 3 4 16 17 64 256 275 723 889 1040 1041 1093 1111 1284 1344 1520 2027 2734 3000 4285 5027))
+;; scheme@(guile-user)> (start-ssigma-sol-approx-pack L-init 19836)
+;; $1 = (1 3 4 16 17 256 275 723 1040 1041 1284 1344 1520 3000 4285 5027)
+
+(define (start-ssigma-sol-approx-pack L t)
+  ;; (display "start-ssigma-sol-approx")
+  ;; (newline)
+  ;; (display "L=") (display L)
+  ;; (newline)
+  ;; (display "t=") (display t)
+  ;; (newline)
+  ;; (newline)
+  ;;(if (null? L)
+   ;;   L
+  ;;   (ssigma-sol-approx L t '() t (list (first L)))))
+
+  (let<-rec* [ best-sol <- (lambda (L1 L2)
+			     ;; (display "L1=")
+			     ;; (display L1)
+			     ;; (newline)
+			     ;; (display "L2=")
+			     ;; (display L2)
+			     ;; (newline)
+			     (let<-*  [ s1 <- (apply + L1)
+					s2 <- (apply + L2) ]
+				    
+			       (if {(abs {t - s1}) <= (abs {t - s2})}
+				   L1
+				   L2)))
+
+	       best-sol3 <- (lambda (L1 L2 L3)
+			      ;; (display "best-sol3") (newline)
+			      ;; (display "t=") (display t) (newline)
+			      ;; (display "L1=")
+			      ;; (display L1)
+			      ;; (newline)
+			      ;; (display "L2=")
+			      ;; (display L2)
+			      ;; (newline)
+			      ;; (display "L3=")
+			      ;; (display L3)
+			      ;; (newline)
+			      (let [(L22 (best-sol L2 L3))]
+				(best-sol L1 L22)))
+	       
+	       ssigma-sol-approx <- (lambda (L)
+				      ;; (display "L=") (display L)
+				      ;; (newline)
+				      
+				      (if (null? L)
+					  
+					  L
+					  
+					  (let<-* [ c <- (first L)
+						    R <- (rest L)  ]
+					    
+					    (cond [ {c = t} (list c) ] ;; c is the solution
+						  [ {c > t} (best-sol (list c) (ssigma-sol-approx R)) ] ;; c is to big to be a solution but could be an approximation
+						  ;; c < t at this point, 3 possibilities :
+						  ;; c is the best solution
+						  ;; c is part of the solution or his approximation
+						  ;; or c is not part of solution or his approximation
+						  [ else (best-sol3 (list c) ;; c is the best solution
+								    
+								    ;;(begin
+								      ;; (display "append c=") (display c) (newline)
+								    ;; c part of solution or is approximation
+								    (cons c (start-ssigma-sol-approx-pack R {t - c}));;) ;; we have to find a solution or an approximation for t-c now
+								    
+								    ;; c is not part of solution or his approximation
+								    (ssigma-sol-approx R))]))))
+
+	       
+	       ]
+
+	     ;; start the function
+	     (ssigma-sol-approx L)))
