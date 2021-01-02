@@ -17,6 +17,7 @@
 (include "../library-FunctProg/list.scm")
 (include "../library-FunctProg/postfix.scm")
 (include "../library-FunctProg/let.scm")
+(include "../library-FunctProg/array.scm")
 
 ;; if data are disordered the algo works also
 ;;(define L-init '(1 3 4 16 17 64 256 275 723 889 1040 1041 1093 1111 1284 1344 1520 2027 2734 3000 4285 5027))
@@ -253,21 +254,21 @@
    ;;   L
   ;;   (ssigma-sol-approx L t '() t (list (first L)))))
 
-  (let<-rec* [ best-sol <- (lambda (L1 L2)
+  (letrec-arrow* [ best-sol ← (lambda (L1 L2)
 			     ;; (display "L1=")
 			     ;; (display L1)
 			     ;; (newline)
 			     ;; (display "L2=")
 			     ;; (display L2)
 			     ;; (newline)
-			     (let<-*  [ s1 <- (apply + L1)
-					s2 <- (apply + L2) ]
+			     (let-arrow*  [ s1 ← (apply + L1)
+					    s2 ← (apply + L2) ]
 				    
 			       (if {(abs {t - s1}) <= (abs {t - s2})}
 				   L1
 				   L2)))
 
-	       best-sol3 <- (lambda (L1 L2 L3)
+		   best-sol3 ← (lambda (L1 L2 L3)
 			      ;; (display "best-sol3") (newline)
 			      ;; (display "t=") (display t) (newline)
 			      ;; (display "L1=")
@@ -282,7 +283,7 @@
 			      (let [(L22 (best-sol L2 L3))]
 				(best-sol L1 L22)))
 	       
-	       ssigma-sol-approx <- (lambda (L)
+	           ssigma-sol-approx ← (lambda (L)
 				      ;; (display "L=") (display L)
 				      ;; (newline)
 				      
@@ -290,8 +291,8 @@
 					  
 					  L
 					  
-					  (let<-* [ c <- (first L)
-						    R <- (rest L)  ]
+					  (let-arrow* [ c ← (first L)
+						        R ← (rest L)  ]
 					    
 					    (cond [ {c = t} (list c) ] ;; c is the solution
 						  [ {c > t} (best-sol (list c) (ssigma-sol-approx R)) ] ;; c is to big to be a solution but could be an approximation
