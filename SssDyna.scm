@@ -78,7 +78,7 @@
 ;; $2 = 147801
 (define (ssigma-dyna-local L t)
 
-  {cpt <- {cpt + 1}}
+  {cpt ← {cpt + 1}}
   
   ;;(display L) (display " ") (display t) (newline)
   
@@ -92,7 +92,7 @@
 	dyn
 
 	;; set the array but return the variable
-	{ dyna[ls t] <-  (one-two
+	{ dyna[ls t] ← (one-two
 			  (if (null? L)
 			      #f
 			      (local [ c (first L)

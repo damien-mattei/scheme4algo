@@ -242,7 +242,7 @@
 ;; scheme@(guile-user)> (start-ssigma-sol-approx-pack L-init 19836)
 ;; $1 = (1 3 4 16 17 256 275 723 1040 1041 1284 1344 1520 3000 4285 5027)
 
-(define (start-ssigma-sol-approx-pack L t)
+(define (start-ssigma-sol-approx-pack L t) ;; Sub Set Sum problem (find solution or approximation)
   ;; (display "start-ssigma-sol-approx")
   ;; (newline)
   ;; (display "L=") (display L)
