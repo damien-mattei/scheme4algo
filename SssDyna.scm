@@ -15,7 +15,7 @@
 
 
 (include "../library-FunctProg/first-and-rest.scm")
-(include "../library-FunctProg/array.scm")
+(include "../library-FunctProg/guile/array.scm")
 (include "../library-FunctProg/pair.scm")
 (include "../library-FunctProg/number.scm")
 (include "../library-FunctProg/list.scm")
