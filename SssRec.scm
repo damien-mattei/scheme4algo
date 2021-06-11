@@ -12,12 +12,16 @@
 
 
 
+;;(use-modules (syntax define))
+(use-modules (.. library-FunctProg guile define))
 
 (include "../library-FunctProg/first-and-rest.scm")
 (include "../library-FunctProg/list.scm")
 (include "../library-FunctProg/postfix.scm")
 (include "../library-FunctProg/let.scm")
-(include "../library-FunctProg/array.scm")
+(include "../library-FunctProg/definition.scm")
+(include "../library-FunctProg/guile/array.scm")
+(include "../library-FunctProg/block.scm")
 
 ;; if data are disordered the algo works also
 ;;(define L-init '(1 3 4 16 17 64 256 275 723 889 1040 1041 1093 1111 1284 1344 1520 2027 2734 3000 4285 5027))
@@ -243,50 +247,24 @@
 ;; $1 = (1 3 4 16 17 256 275 723 1040 1041 1284 1344 1520 3000 4285 5027)
 
 (define (start-ssigma-sol-approx-pack L t) ;; Sub Set Sum problem (find solution or approximation)
-  ;; (display "start-ssigma-sol-approx")
-  ;; (newline)
-  ;; (display "L=") (display L)
-  ;; (newline)
-  ;; (display "t=") (display t)
-  ;; (newline)
-  ;; (newline)
-  ;;(if (null? L)
-   ;;   L
-  ;;   (ssigma-sol-approx L t '() t (list (first L)))))
+ 
 
   (letrec-arrow* [ best-sol ← (lambda (L1 L2)
-			     ;; (display "L1=")
-			     ;; (display L1)
-			     ;; (newline)
-			     ;; (display "L2=")
-			     ;; (display L2)
-			     ;; (newline)
-			     (let-arrow*  [ s1 ← (apply + L1)
-					    s2 ← (apply + L2) ]
+			   
+				(let-arrow*  [ s1 ← (apply + L1)
+					       s2 ← (apply + L2) ]
 				    
-			       (if {(abs {t - s1}) <= (abs {t - s2})}
-				   L1
-				   L2)))
+					     (if {(abs {t - s1}) <= (abs {t - s2})}
+						 L1
+						 L2)))
 
 		   best-sol3 ← (lambda (L1 L2 L3)
-			      ;; (display "best-sol3") (newline)
-			      ;; (display "t=") (display t) (newline)
-			      ;; (display "L1=")
-			      ;; (display L1)
-			      ;; (newline)
-			      ;; (display "L2=")
-			      ;; (display L2)
-			      ;; (newline)
-			      ;; (display "L3=")
-			      ;; (display L3)
-			      ;; (newline)
-			      (let [(L22 (best-sol L2 L3))]
-				(best-sol L1 L22)))
+			     
+				 (let [(L22 (best-sol L2 L3))]
+				   (best-sol L1 L22)))
 	       
 	           ssigma-sol-approx ← (lambda (L)
-				      ;; (display "L=") (display L)
-				      ;; (newline)
-				      
+				     				      
 				      (if (null? L)
 					  
 					  L
@@ -315,3 +293,160 @@
 
 	     ;; start the function
 	     (ssigma-sol-approx L)))
+
+
+
+;; scheme@(guile-user)> (define L-init '(1 3 4 16 17 64 256 275 723 889 1040 1041 1093 1111 1284 1344 1520 2027 2734 3000 4285 5027))
+;; scheme@(guile-user)> (start-ssigma-sol-approx-pack-define-anywhere L-init 19836)
+;; $2 = (1 3 4 16 17 256 275 723 1040 1041 1284 1344 1520 3000 4285 5027)
+
+(define (start-ssigma-sol-approx-pack-define-anywhere L t) ;; Sub Set Sum problem (find solution or approximation)
+  ;; { } are for infix notation as defined in SRFI 105
+  ;; <+ and := are equivalent to (define var value) 
+  { best-sol <+ (lambda (L1 L2)
+		  
+		  {s1 <+ (apply + L1)}
+		  {s2 <+ (apply + L2)}
+		  
+		  (if {(abs {t - s1}) <= (abs {t - s2})}
+		      L1
+		      L2)) }
+
+  ;; := is the same macro as <+
+  { best-sol3 := (lambda (L1 L2 L3)
+		   
+		   {L22 <+ (best-sol L2 L3)}
+		   (best-sol L1 L22)) }
+
+  
+  { ssigma-sol-approx <+ (lambda (L)
+			   ;; def is a macro for declared but unasigned variable, it is same as (define var '())
+			   (def c) 
+			   (def R)
+			   
+			   (if (null? L)
+			       L
+			       (begin {c <- (first L)}
+				      {R <- (rest L)}
+				      
+				      (cond [ {c = t} (list c) ] ;; c is the solution
+					    [ {c > t} (best-sol (list c) (ssigma-sol-approx R)) ] ;; c is to big to be a solution but could be an approximation
+					    ;; c < t at this point, 3 possibilities :
+					    ;; c is the best solution
+					    ;; c is part of the solution or his approximation
+					    ;; or c is not part of solution or his approximation
+					    [ else (best-sol3 (list c) ;; c is the best solution
+							      
+							      ;; c part of solution or is approximation
+							      (cons c (start-ssigma-sol-approx-pack-define-anywhere R {t - c})) ;; we have to find a solution or an approximation for t-c now
+									    
+							      ;; c is not part of solution or his approximation
+							      (ssigma-sol-approx R))])))) }
+		   
+	       
+  ;; start the function
+  (ssigma-sol-approx L))
+
+
+;; scheme@(guile-user)> (define L-init '(1 3 4 16 17 64 256 275 723 889 1040 1041 1093 1111 1284 1344 1520 2027 2734 3000 4285 5027))
+;; scheme@(guile-user)>  (start-ssigma-sol-approx-basic L-init 19836)
+;; $1 = (1 3 4 16 17 256 275 723 1040 1041 1284 1344 1520 3000 4285 5027)
+;; scheme@(guile-user)> (apply + $1)
+;; $2 = 19836
+(define (start-ssigma-sol-approx-basic L t) ;; Sub Set Sum problem (find solution or approximation)
+  ;; { } are for infix notation as defined in SRFI 105
+  ;; <+ and := are equivalent to (define var value) 
+  { best-sol <+ (lambda (L1 L2)
+		  
+		  {s1 <+ (apply + L1)}
+		  {s2 <+ (apply + L2)}
+		  
+		  (if {(abs {t - s1}) <= (abs {t - s2})}
+		      L1
+		      L2)) }
+
+  ;; := is the same macro as <+
+  { best-sol3 := (lambda (L1 L2 L3)
+		   
+		   {L22 <+ (best-sol L2 L3)}
+		   (best-sol L1 L22)) }
+
+  
+  { ssigma-sol-approx <+ (lambda (L)
+			   ;; def is a macro for declared but unasigned variable, it is same as (define var '())
+			   (def c) 
+			   (def R)
+			   
+			   (if (null? L)
+			       L
+			       ($ {c <- (first L)} ;; $ = begin
+				  (if {c = t}
+				      (list c)  ;; c is the solution
+				      ($ {R <- (rest L)}
+					 (if {c > t}
+					     (best-sol (list c) (ssigma-sol-approx R))  ;; c is to big to be a solution but could be an approximation
+					     ;; c < t at this point, 3 possibilities :
+					     ;; c is the best solution
+					     ;; c is part of the solution or his approximation
+					     ;; or c is not part of solution or his approximation
+					     (best-sol3 (list c) ;; c is the best solution
+							;; c part of solution or is approximation
+							(cons c (start-ssigma-sol-approx-basic R {t - c})) ;; we have to find a solution or an approximation for t-c now
+							;; c is not part of solution or his approximation
+							(ssigma-sol-approx R)))))))) }
+		   
+	       
+  ;; start the function
+  (ssigma-sol-approx L))
+
+
+
+
+;; scheme@(guile-user)> (define L-init '(1 3 4 16 17 64 256 275 723 889 1040 1041 1093 1111 1284 1344 1520 2027 2734 3000 4285 5027))
+;; scheme@(guile-user)>  (start-ssigma-sol-approx-linus L-init 19836)
+;; $1 = (1 3 4 16 17 256 275 723 1040 1041 1284 1344 1520 3000 4285 5027)
+(define (start-ssigma-sol-approx-linus L t) ;; Sub Set Sum problem (find solution or approximation)
+  ;; { } are for infix notation as defined in SRFI 105
+  ;; <+ and := are equivalent to (define var value) 
+  { best-sol <+ (lambda (L1 L2)
+		  
+		  {s1 <+ (apply + L1)}
+		  {s2 <+ (apply + L2)}
+		  
+		  (if {(abs {t - s1}) <= (abs {t - s2})}
+		      L1
+		      L2)) }
+
+  ;; := is the same macro as <+
+  { best-sol3 := (lambda (L1 L2 L3)
+		   
+		   {L22 <+ (best-sol L2 L3)}
+		   (best-sol L1 L22)) }
+
+  
+  { ssigma-sol-approx <+ (lambda (L)
+			   ;; def is a macro for declared but unasigned variable, it is same as (define var '())
+			   ;;(def c) 
+			   ;;(def R)
+			   
+			   (if (null? L)
+			       L
+			       ($ (define c (first L)) ;; $ = begin
+				  (if {c = t}
+				      (list c)  ;; c is the solution
+				      ($ (define R (rest L))
+					 (if {c > t}
+					     (best-sol (list c) (ssigma-sol-approx R))  ;; c is to big to be a solution but could be an approximation
+					     ;; c < t at this point, 3 possibilities :
+					     ;; c is the best solution
+					     ;; c is part of the solution or his approximation
+					     ;; or c is not part of solution or his approximation
+					     (best-sol3 (list c) ;; c is the best solution
+							;; c part of solution or is approximation
+							(cons c (start-ssigma-sol-approx-linus R {t - c})) ;; we have to find a solution or an approximation for t-c now
+							;; c is not part of solution or his approximation
+							(ssigma-sol-approx R)))))))) }
+		   
+	       
+  ;; start the function
+  (ssigma-sol-approx L))

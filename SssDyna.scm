@@ -78,7 +78,7 @@
 ;; $2 = 147801
 (define (ssigma-dyna-local L t)
 
-  {cpt ← {cpt + 1}}
+  {cpt ← {cpt + 1}} ;; cpt is defined at toplevel
   
   ;;(display L) (display " ") (display t) (newline)
   
@@ -103,6 +103,44 @@
 					   ;; c is part of the solution or his approximation
 					   ;; or c is not part of solution or his approximation
 					   [ else {(ssigma-dyna-local R {t - c}) or (ssigma-dyna-local R t)} ] )))) } ))))
+
+;; scheme@(guile-user)> (ssigma-dyna-define-anywhere L-init t-init)
+;; $1 = #t
+;; scheme@(guile-user)> cpt
+;; $2 = 147801
+(define (ssigma-dyna-define-anywhere L t)
+
+  {cpt <- {cpt + 1}} ;; cpt is defined at toplevel
+  
+  ;;(display L) (display " ") (display t) (newline)
+  
+  {ls <+ (length L)}
+  {dyn <+ {dyna[ls t]}}
+
+  (def c)
+  (def R)
+  
+  ;; dyna[ls t] means 0: unknown solution, 1: solution found, 2: no solution
+  (one?
+    (if (not (zero? dyn))
+	
+	dyn
+	
+	;; set the array but return the variable
+	{ dyna[ls t] <- (one-two
+			  (if (null? L)
+			      #f
+			      (begin
+				{c <- (first L)}
+				{R <- (rest L)}
+				(cond [ {c = t} #t ] ;; c is the solution
+				      [ {c > t} (ssigma-dyna-define-anywhere R t) ] ;; c is to big to be a solution but can be an approximation
+				      ;; c < t at this point
+				      ;; c is part of the solution or his approximation
+				      ;; or c is not part of solution or his approximation
+				      [ else {(ssigma-dyna-define-anywhere R {t - c}) or (ssigma-dyna-define-anywhere R t)} ] )))) } )))
+
+
 
 
 ;; scheme@(guile-user)> (ssigma-proto L-init t-init)
